@@ -1,0 +1,12 @@
+jupyterlab
+matplotlib
+numpy
+nbdev < 2
+pandas
+plotly
+scikit-learn
+seaborn
+streamlit
+scipy
+statsmodels
+jinja2 >= 3.1.2

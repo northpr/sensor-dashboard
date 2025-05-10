@@ -19,7 +19,7 @@ import data_generator
 
 # Set page configuration
 st.set_page_config(
-    page_title="Water Quality Monitoring Dashboard",
+    page_title="ระบบติดตามคุณภาพดิน",
     page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -33,9 +33,9 @@ def load_data():
     
     # Check if data directory exists
     if not os.path.exists(data_dir):
-        st.info("Generating sensor data... This may take a moment.")
+        st.info("กำลังสร้างข้อมูลเซ็นเซอร์... กรุณารอสักครู่")
         file_paths = data_generator.save_sensor_data(days=30, frequency_minutes=15, num_sensors=5, seed=42)
-        st.success("Sensor data generated successfully!")
+        st.success("สร้างข้อมูลเซ็นเซอร์สำเร็จแล้ว!")
     
     # Load combined data
     combined_data_path = os.path.join(data_dir, 'combined_sensor_data.csv')
@@ -43,7 +43,7 @@ def load_data():
         combined_data = pd.read_csv(combined_data_path)
         combined_data['timestamp'] = pd.to_datetime(combined_data['timestamp'])
     else:
-        st.error("Combined sensor data not found. Please generate data first.")
+        st.error("ไม่พบข้อมูลเซ็นเซอร์รวม กรุณาสร้างข้อมูลก่อน")
         combined_data = None
     
     # Load sensor info
@@ -51,7 +51,7 @@ def load_data():
     if os.path.exists(sensor_info_path):
         sensor_info = pd.read_csv(sensor_info_path)
     else:
-        st.error("Sensor info not found. Please generate data first.")
+        st.error("ไม่พบข้อมูลเซ็นเซอร์ กรุณาสร้างข้อมูลก่อน")
         sensor_info = None
     
     # Load daily summary
@@ -60,7 +60,7 @@ def load_data():
         daily_summary = pd.read_csv(daily_summary_path)
         daily_summary['date'] = pd.to_datetime(daily_summary['date'])
     else:
-        st.error("Daily summary not found. Please generate data first.")
+        st.error("ไม่พบข้อมูลสรุปรายวัน กรุณาสร้างข้อมูลก่อน")
         daily_summary = None
     
     # Load individual sensor data
@@ -127,27 +127,27 @@ def main():
     """, unsafe_allow_html=True)
     
     # Header
-    st.markdown('<h1 class="main-header">Water Quality Monitoring Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">ระบบติดตามคุณภาพดิน</h1>', unsafe_allow_html=True)
     
     # Load data
     data = load_data()
     
     if all(v is not None for v in data.values()):
         # Sidebar for navigation
-        st.sidebar.title("Navigation")
+        st.sidebar.title("เมนู")
         
         # Get the number of sensors
         num_sensors = len(data['individual_sensors'])
         
         # Dashboard selection using custom buttons
-        st.sidebar.markdown("### Select Dashboard")
+        st.sidebar.markdown("### เลือกแดชบอร์ด")
         
         # Define dashboard options
-        dashboard_options = ["Overview", "Sensor Details", "Trend Analysis", "Anomaly Detection", "Maintenance"]
+        dashboard_options = ["ภาพรวม", "รายละเอียดเซ็นเซอร์", "การวิเคราะห์แนวโน้ม", "การตรวจจับความผิดปกติ", "การบำรุงรักษา"]
         
         # Use session state to keep track of the selected dashboard
         if 'dashboard' not in st.session_state:
-            st.session_state.dashboard = "Overview"
+            st.session_state.dashboard = "ภาพรวม"
         
         # Create custom buttons for each dashboard option
         for option in dashboard_options:
@@ -156,7 +156,7 @@ def main():
                 option, 
                 key=f"btn_{option}", 
                 use_container_width=True,
-                help=f"View {option} dashboard"
+                help=f"ดูแดชบอร์ด{option}"
             ):
                 st.session_state.dashboard = option
         
@@ -164,47 +164,47 @@ def main():
         dashboard = st.session_state.dashboard
         
         # Display the selected dashboard
-        if dashboard == "Overview":
+        if dashboard == "ภาพรวม":
             show_overview_dashboard(data)
         
-        elif dashboard == "Sensor Details":
+        elif dashboard == "รายละเอียดเซ็นเซอร์":
             # Sensor selection
             selected_sensor = st.sidebar.selectbox(
-                "Select Sensor",
-                [f"Sensor {i}" for i in range(1, num_sensors + 1)]
+                "เลือกเซ็นเซอร์",
+                [f"เซ็นเซอร์ {i}" for i in range(1, num_sensors + 1)]
             )
             sensor_id = int(selected_sensor.split()[1])
             show_sensor_detail_dashboard(data, sensor_id)
         
-        elif dashboard == "Trend Analysis":
+        elif dashboard == "การวิเคราะห์แนวโน้ม":
             show_trend_analysis_dashboard(data)
         
-        elif dashboard == "Anomaly Detection":
+        elif dashboard == "การตรวจจับความผิดปกติ":
             show_anomaly_detection_dashboard(data)
         
-        elif dashboard == "Maintenance":
+        elif dashboard == "การบำรุงรักษา":
             show_maintenance_dashboard(data)
         
         # Footer
         st.sidebar.markdown("---")
         st.sidebar.info(
-            "This dashboard visualizes water quality sensor data including pH, temperature, "
-            "conductivity, dissolved oxygen, and turbidity measurements from multiple sensors."
+            "แดชบอร์ดนี้แสดงข้อมูลคุณภาพดินจากเซ็นเซอร์ ประกอบด้วย ค่า pH, ความชื้น, "
+            "อุณหภูมิ, ค่าการนำไฟฟ้า, ไนโตรเจน, ฟอสฟอรัส, โพแทสเซียม และค่าอื่นๆ จากเซ็นเซอร์หลายตัว"
         )
         
         # Data last updated
         if data['combined_data'] is not None and not data['combined_data'].empty:
             last_updated = data['combined_data']['timestamp'].max()
-            st.sidebar.text(f"Data last updated: {last_updated}")
+            st.sidebar.text(f"ข้อมูลอัปเดตล่าสุด: {last_updated}")
     
     else:
-        st.error("Failed to load all required data. Please check the data generation process.")
+        st.error("ไม่สามารถโหลดข้อมูลที่จำเป็นได้ กรุณาตรวจสอบกระบวนการสร้างข้อมูล")
         
         # Button to generate data
-        if st.button("Generate Sample Data"):
-            st.info("Generating sensor data... This may take a moment.")
+        if st.button("สร้างข้อมูลตัวอย่าง"):
+            st.info("กำลังสร้างข้อมูลเซ็นเซอร์... กรุณารอสักครู่")
             file_paths = data_generator.save_sensor_data(days=30, frequency_minutes=15, num_sensors=5, seed=42)
-            st.success("Sensor data generated successfully! Please refresh the page.")
+            st.success("สร้างข้อมูลเซ็นเซอร์สำเร็จแล้ว! กรุณารีเฟรชหน้าเว็บ")
 
 if __name__ == "__main__":
     main()

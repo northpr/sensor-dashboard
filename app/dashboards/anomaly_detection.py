@@ -542,7 +542,7 @@ def show_anomaly_detection_dashboard(data):
             st.subheader("Statistical Summary")
             
             # Calculate statistics
-            stats = {
+            stat_values = {
                 'Mean': stat_data[col_name].mean(),
                 'Median': stat_data[col_name].median(),
                 'Std Dev': stat_data[col_name].std(),
@@ -555,27 +555,27 @@ def show_anomaly_detection_dashboard(data):
             }
             
             # Create a dataframe for the statistics
-            stats_df = pd.DataFrame(stats.items(), columns=['Statistic', 'Value'])
+            stats_df = pd.DataFrame(stat_values.items(), columns=['Statistic', 'Value'])
             
             # Display the statistics
             col1, col2, col3 = st.columns(3)
             
-            col1.metric("Mean", f"{stats['Mean']:.2f}")
-            col1.metric("Median", f"{stats['Median']:.2f}")
-            col1.metric("Std Dev", f"{stats['Std Dev']:.2f}")
+            col1.metric("Mean", f"{stat_values['Mean']:.2f}")
+            col1.metric("Median", f"{stat_values['Median']:.2f}")
+            col1.metric("Std Dev", f"{stat_values['Std Dev']:.2f}")
             
-            col2.metric("Min", f"{stats['Min']:.2f}")
-            col2.metric("Max", f"{stats['Max']:.2f}")
-            col2.metric("Range", f"{stats['Range']:.2f}")
+            col2.metric("Min", f"{stat_values['Min']:.2f}")
+            col2.metric("Max", f"{stat_values['Max']:.2f}")
+            col2.metric("Range", f"{stat_values['Range']:.2f}")
             
-            col3.metric("Q1", f"{stats['Q1']:.2f}")
-            col3.metric("Q3", f"{stats['Q3']:.2f}")
-            col3.metric("IQR", f"{stats['IQR']:.2f}")
+            col3.metric("Q1", f"{stat_values['Q1']:.2f}")
+            col3.metric("Q3", f"{stat_values['Q3']:.2f}")
+            col3.metric("IQR", f"{stat_values['IQR']:.2f}")
             
             # Detect outliers using IQR method
-            q1 = stats['Q1']
-            q3 = stats['Q3']
-            iqr = stats['IQR']
+            q1 = stat_values['Q1']
+            q3 = stat_values['Q3']
+            iqr = stat_values['IQR']
             
             lower_bound = q1 - 1.5 * iqr
             upper_bound = q3 + 1.5 * iqr

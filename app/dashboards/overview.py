@@ -11,8 +11,8 @@ def show_overview_dashboard(data):
     Parameters:
     - data: Dictionary containing all sensor data
     """
-    st.header("Overview Dashboard")
-    st.markdown("This dashboard provides a high-level overview of all soil quality sensors.")
+    st.header("แดชบอร์ดภาพรวม")
+    st.markdown("แดชบอร์ดนี้แสดงภาพรวมของเซ็นเซอร์วัดคุณภาพดินทั้งหมด")
     
     # Get the data
     combined_data = data['combined_data']
@@ -27,26 +27,26 @@ def show_overview_dashboard(data):
     
     # Display the number of sensors
     num_sensors = len([col for col in combined_data.columns if col.endswith('_ph')])
-    col1.metric("Total Sensors", num_sensors)
+    col1.metric("จำนวนเซ็นเซอร์", num_sensors)
     
     # Display the total number of readings
     total_readings = len(combined_data)
-    col2.metric("Total Readings", f"{total_readings:,}")
+    col2.metric("จำนวนการอ่านค่าทั้งหมด", f"{total_readings:,}")
     
     # Display the date range
     start_date = combined_data['timestamp'].min().date()
     end_date = combined_data['timestamp'].max().date()
-    date_range = f"{start_date} to {end_date}"
-    col3.metric("Date Range", date_range)
+    date_range = f"{start_date} ถึง {end_date}"
+    col3.metric("ช่วงวันที่", date_range)
     
     # Display the average reading frequency
     time_diff = combined_data['timestamp'].diff().mean()
     minutes = int(time_diff.total_seconds() / 60)
-    col4.metric("Avg Reading Frequency", f"{minutes} min")
+    col4.metric("ความถี่การอ่านค่าเฉลี่ย", f"{minutes} นาที")
     
     # Display the last update time
     last_update = combined_data['timestamp'].max()
-    col5.metric("Last Updated", last_update.strftime("%Y-%m-%d %H:%M"))
+    col5.metric("อัปเดตล่าสุด", last_update.strftime("%Y-%m-%d %H:%M"))
     
     st.markdown("---")
     
@@ -54,7 +54,7 @@ def show_overview_dashboard(data):
     col1, col2 = st.columns([3, 2])
     
     with col1:
-        st.subheader("Sensor Locations")
+        st.subheader("ตำแหน่งเซ็นเซอร์")
         
         # Create a dataframe for the map
         map_data = sensor_info.copy()
@@ -77,18 +77,18 @@ def show_overview_dashboard(data):
                 # Add color based on pH value
                 ph = latest_data[ph_col]
                 if ph < 6.5:
-                    map_data.loc[i, 'status'] = "Acidic"
+                    map_data.loc[i, 'status'] = "เป็นกรด"
                     map_data.loc[i, 'color'] = "red"
                 elif ph > 8.5:
-                    map_data.loc[i, 'status'] = "Alkaline"
+                    map_data.loc[i, 'status'] = "เป็นด่าง"
                     map_data.loc[i, 'color'] = "purple"
                 else:
-                    map_data.loc[i, 'status'] = "Normal"
+                    map_data.loc[i, 'status'] = "ปกติ"
                     map_data.loc[i, 'color'] = "green"
         
         # Create a new column for hover text that includes soil type
         map_data['hover_text'] = map_data.apply(
-            lambda row: f"Soil Type: {row['water_type']}<br>pH: {row['latest_ph']:.2f}<br>Status: {row['status']}",
+            lambda row: f"ประเภทดิน: {row['water_type']}<br>pH: {row['latest_ph']:.2f}<br>สถานะ: {row['status']}",
             axis=1
         )
         
@@ -96,7 +96,7 @@ def show_overview_dashboard(data):
         fig = go.Figure()
         
         # Add points for each sensor
-        for status in ["Normal", "Acidic", "Alkaline"]:
+        for status in ["ปกติ", "เป็นกรด", "เป็นด่าง"]:
             df_status = map_data[map_data['status'] == status]
             if not df_status.empty:
                 fig.add_trace(go.Scattermapbox(
@@ -105,7 +105,7 @@ def show_overview_dashboard(data):
                     mode='markers',
                     marker=dict(
                         size=15,
-                        color={"Normal": "green", "Acidic": "red", "Alkaline": "purple"}[status]
+                        color={"ปกติ": "green", "เป็นกรด": "red", "เป็นด่าง": "purple"}[status]
                     ),
                     text=df_status['location_name'],
                     hovertext=df_status['hover_text'],
@@ -134,11 +134,11 @@ def show_overview_dashboard(data):
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.subheader("Sensor Information")
+        st.subheader("ข้อมูลเซ็นเซอร์")
         
         # Display sensor info in a table with renamed columns
         sensor_table = sensor_info[['sensor_id', 'location_name', 'water_type', 'last_calibration']].copy()
-        sensor_table.columns = ['Sensor ID', 'Location', 'Soil Type', 'Last Calibration']
+        sensor_table.columns = ['รหัสเซ็นเซอร์', 'ตำแหน่ง', 'ประเภทดิน', 'การปรับเทียบล่าสุด']
         st.dataframe(
             sensor_table,
             use_container_width=True
@@ -146,13 +146,13 @@ def show_overview_dashboard(data):
         
         # Display a pie chart of soil types
         soil_type_counts = sensor_info['water_type'].value_counts().reset_index()
-        soil_type_counts.columns = ['Soil Type', 'Count']
+        soil_type_counts.columns = ['ประเภทดิน', 'จำนวน']
         
         fig = px.pie(
             soil_type_counts,
-            values='Count',
-            names='Soil Type',
-            title='Sensors by Soil Type',
+            values='จำนวน',
+            names='ประเภทดิน',
+            title='เซ็นเซอร์ตามประเภทดิน',
             hole=0.4
         )
         
@@ -161,21 +161,21 @@ def show_overview_dashboard(data):
     st.markdown("---")
     
     # Create a section for the latest readings
-    st.subheader("Latest Sensor Readings")
+    st.subheader("ค่าล่าสุดจากเซ็นเซอร์")
     
     # Create a dataframe for the latest readings
     latest_readings = []
     
     for i in range(1, num_sensors + 1):
         sensor_data = {}
-        sensor_data['Sensor ID'] = i
+        sensor_data['รหัสเซ็นเซอร์'] = i
         
         # Get the location name
         sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
         if not sensor_info_row.empty:
-            sensor_data['Location'] = sensor_info_row['location_name'].values[0]
+            sensor_data['ตำแหน่ง'] = sensor_info_row['location_name'].values[0]
         else:
-            sensor_data['Location'] = f"Sensor {i}"
+            sensor_data['ตำแหน่ง'] = f"เซ็นเซอร์ {i}"
         
         # Get the latest readings in the specified order
         # pH first, followed by humidity and temperature, then the rest
@@ -186,13 +186,21 @@ def show_overview_dashboard(data):
                 if param == 'ph':
                     param_name = 'pH'
                 elif param == 'temp':
-                    param_name = 'Temperature'
+                    param_name = 'อุณหภูมิ'
+                elif param == 'humidity':
+                    param_name = 'ความชื้น'
+                elif param == 'conductivity':
+                    param_name = 'การนำไฟฟ้า'
                 elif param == 'nitrogen':
                     param_name = 'N'
                 elif param == 'phosphorus':
                     param_name = 'P'
                 elif param == 'potassium':
                     param_name = 'K'
+                elif param == 'dissolved_oxygen':
+                    param_name = 'ออกซิเจนละลาย'
+                elif param == 'turbidity':
+                    param_name = 'ความขุ่น'
                 else:
                     param_name = param.capitalize()
                 
@@ -225,10 +233,10 @@ def show_overview_dashboard(data):
     st.markdown("---")
     
     # Create a section for the daily trends
-    st.subheader("Daily Trends")
+    st.subheader("แนวโน้มรายวัน")
     
     # Create tabs for different parameters (in the specified order)
-    tabs = st.tabs(["pH", "Humidity", "Temperature", "Conductivity", "NPK", "Dissolved Oxygen", "Turbidity"])
+    tabs = st.tabs(["pH", "ความชื้น", "อุณหภูมิ", "การนำไฟฟ้า", "NPK", "ออกซิเจนละลาย", "ความขุ่น"])
     
     # Get the last 7 days of data
     last_7_days = daily_summary[daily_summary['date'] >= (daily_summary['date'].max() - timedelta(days=7))]
@@ -246,9 +254,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -289,18 +297,18 @@ def show_overview_dashboard(data):
         )
         
         fig.update_layout(
-            title="Daily Average pH (Last 7 Days)",
-            xaxis_title="Date",
+            title="ค่าเฉลี่ย pH รายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
             yaxis_title="pH",
-            legend_title="Sensor",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         
         st.plotly_chart(fig, use_container_width=True)
         
         st.info(
-            "The dashed red lines indicate the normal pH range (6.5 - 8.5). "
-            "Values outside this range may require attention."
+            "เส้นประสีแดงแสดงช่วง pH ปกติ (6.5 - 8.5) "
+            "ค่าที่อยู่นอกช่วงนี้อาจต้องได้รับการตรวจสอบ"
         )
     
     # Humidity tab (inserted after pH and before Temperature)
@@ -314,9 +322,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -327,10 +335,10 @@ def show_overview_dashboard(data):
                 ))
         
         fig.update_layout(
-            title="Daily Average Humidity (Last 7 Days)",
-            xaxis_title="Date",
-            yaxis_title="Humidity (%)",
-            legend_title="Sensor",
+            title="ค่าเฉลี่ยความชื้นรายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
+            yaxis_title="ความชื้น (%)",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         
@@ -347,9 +355,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -360,10 +368,10 @@ def show_overview_dashboard(data):
                 ))
         
         fig.update_layout(
-            title="Daily Average Temperature (Last 7 Days)",
-            xaxis_title="Date",
-            yaxis_title="Temperature (°C)",
-            legend_title="Sensor",
+            title="ค่าเฉลี่ยอุณหภูมิรายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
+            yaxis_title="อุณหภูมิ (°C)",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         
@@ -380,9 +388,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -393,10 +401,10 @@ def show_overview_dashboard(data):
                 ))
         
         fig.update_layout(
-            title="Daily Average Conductivity (Last 7 Days)",
-            xaxis_title="Date",
-            yaxis_title="Conductivity (μS/cm)",
-            legend_title="Sensor",
+            title="ค่าเฉลี่ยการนำไฟฟ้ารายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
+            yaxis_title="การนำไฟฟ้า (μS/cm)",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         
@@ -405,7 +413,7 @@ def show_overview_dashboard(data):
     # NPK tab (Nitrogen, Phosphorus, Potassium)
     with tabs[4]:
         # Create subtabs for N, P, K
-        npk_tabs = st.tabs(["Nitrogen (N)", "Phosphorus (P)", "Potassium (K)"])
+        npk_tabs = st.tabs(["ไนโตรเจน (N)", "ฟอสฟอรัส (P)", "โพแทสเซียม (K)"])
         
         # Nitrogen subtab
         with npk_tabs[0]:
@@ -418,9 +426,9 @@ def show_overview_dashboard(data):
                     # Get the location name
                     sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                     if not sensor_info_row.empty:
-                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                        name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                     else:
-                        name = f"Sensor {i}"
+                        name = f"เซ็นเซอร์ {i}"
                     
                     # Add a line for the average
                     fig.add_trace(go.Scatter(
@@ -431,10 +439,10 @@ def show_overview_dashboard(data):
                     ))
             
             fig.update_layout(
-                title="Daily Average Nitrogen (Last 7 Days)",
-                xaxis_title="Date",
-                yaxis_title="Nitrogen (mg/kg)",
-                legend_title="Sensor",
+                title="ค่าเฉลี่ยไนโตรเจนรายวัน (7 วันล่าสุด)",
+                xaxis_title="วันที่",
+                yaxis_title="ไนโตรเจน (mg/kg)",
+                legend_title="เซ็นเซอร์",
                 hovermode="x unified"
             )
             
@@ -451,9 +459,9 @@ def show_overview_dashboard(data):
                     # Get the location name
                     sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                     if not sensor_info_row.empty:
-                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                        name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                     else:
-                        name = f"Sensor {i}"
+                        name = f"เซ็นเซอร์ {i}"
                     
                     # Add a line for the average
                     fig.add_trace(go.Scatter(
@@ -464,10 +472,10 @@ def show_overview_dashboard(data):
                     ))
             
             fig.update_layout(
-                title="Daily Average Phosphorus (Last 7 Days)",
-                xaxis_title="Date",
-                yaxis_title="Phosphorus (mg/kg)",
-                legend_title="Sensor",
+                title="ค่าเฉลี่ยฟอสฟอรัสรายวัน (7 วันล่าสุด)",
+                xaxis_title="วันที่",
+                yaxis_title="ฟอสฟอรัส (mg/kg)",
+                legend_title="เซ็นเซอร์",
                 hovermode="x unified"
             )
             
@@ -484,9 +492,9 @@ def show_overview_dashboard(data):
                     # Get the location name
                     sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                     if not sensor_info_row.empty:
-                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                        name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                     else:
-                        name = f"Sensor {i}"
+                        name = f"เซ็นเซอร์ {i}"
                     
                     # Add a line for the average
                     fig.add_trace(go.Scatter(
@@ -497,10 +505,10 @@ def show_overview_dashboard(data):
                     ))
             
             fig.update_layout(
-                title="Daily Average Potassium (Last 7 Days)",
-                xaxis_title="Date",
-                yaxis_title="Potassium (mg/kg)",
-                legend_title="Sensor",
+                title="ค่าเฉลี่ยโพแทสเซียมรายวัน (7 วันล่าสุด)",
+                xaxis_title="วันที่",
+                yaxis_title="โพแทสเซียม (mg/kg)",
+                legend_title="เซ็นเซอร์",
                 hovermode="x unified"
             )
             
@@ -517,9 +525,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -530,10 +538,10 @@ def show_overview_dashboard(data):
                 ))
         
         fig.update_layout(
-            title="Daily Average Dissolved Oxygen (Last 7 Days)",
-            xaxis_title="Date",
-            yaxis_title="Dissolved Oxygen (mg/L)",
-            legend_title="Sensor",
+            title="ค่าเฉลี่ยออกซิเจนละลายรายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
+            yaxis_title="ออกซิเจนละลาย (mg/L)",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         
@@ -550,9 +558,9 @@ def show_overview_dashboard(data):
                 # Get the location name
                 sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
                 if not sensor_info_row.empty:
-                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    name = f"เซ็นเซอร์ {i} ({sensor_info_row['location_name'].values[0]})"
                 else:
-                    name = f"Sensor {i}"
+                    name = f"เซ็นเซอร์ {i}"
                 
                 # Add a line for the average
                 fig.add_trace(go.Scatter(
@@ -563,10 +571,10 @@ def show_overview_dashboard(data):
                 ))
         
         fig.update_layout(
-            title="Daily Average Turbidity (Last 7 Days)",
-            xaxis_title="Date",
-            yaxis_title="Turbidity (NTU)",
-            legend_title="Sensor",
+            title="ค่าเฉลี่ยความขุ่นรายวัน (7 วันล่าสุด)",
+            xaxis_title="วันที่",
+            yaxis_title="ความขุ่น (NTU)",
+            legend_title="เซ็นเซอร์",
             hovermode="x unified"
         )
         

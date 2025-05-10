@@ -102,6 +102,27 @@ def main():
         border-radius: 0.5rem;
         box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
     }
+    .nav-link {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+        font-weight: 500;
+        background-color: transparent;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .nav-link:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .nav-link.active {
+        background-color: #4e8df5;
+        color: white;
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -118,11 +139,29 @@ def main():
         # Get the number of sensors
         num_sensors = len(data['individual_sensors'])
         
-        # Dashboard selection
-        dashboard = st.sidebar.radio(
-            "Select Dashboard",
-            ["Overview", "Sensor Details", "Trend Analysis", "Anomaly Detection", "Maintenance"]
-        )
+        # Dashboard selection using custom buttons
+        st.sidebar.markdown("### Select Dashboard")
+        
+        # Define dashboard options
+        dashboard_options = ["Overview", "Sensor Details", "Trend Analysis", "Anomaly Detection", "Maintenance"]
+        
+        # Use session state to keep track of the selected dashboard
+        if 'dashboard' not in st.session_state:
+            st.session_state.dashboard = "Overview"
+        
+        # Create custom buttons for each dashboard option
+        for option in dashboard_options:
+            active_class = "active" if st.session_state.dashboard == option else ""
+            if st.sidebar.button(
+                option, 
+                key=f"btn_{option}", 
+                use_container_width=True,
+                help=f"View {option} dashboard"
+            ):
+                st.session_state.dashboard = option
+        
+        # Get the current dashboard from session state
+        dashboard = st.session_state.dashboard
         
         # Display the selected dashboard
         if dashboard == "Overview":

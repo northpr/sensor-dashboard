@@ -12,7 +12,7 @@ def show_overview_dashboard(data):
     - data: Dictionary containing all sensor data
     """
     st.header("Overview Dashboard")
-    st.markdown("This dashboard provides a high-level overview of all water quality sensors.")
+    st.markdown("This dashboard provides a high-level overview of all soil quality sensors.")
     
     # Get the data
     combined_data = data['combined_data']
@@ -86,35 +86,49 @@ def show_overview_dashboard(data):
                     map_data.loc[i, 'status'] = "Normal"
                     map_data.loc[i, 'color'] = "green"
         
-        # Create the map
-        fig = px.scatter_mapbox(
-            map_data,
-            lat="latitude",
-            lon="longitude",
-            hover_name="location_name",
-            hover_data={
-                "sensor_id": True,
-                "water_type": True,
-                "latest_ph": ":.2f",
-                "status": True,
-                "latitude": False,
-                "longitude": False,
-                "color": False
-            },
-            color="status",
-            color_discrete_map={
-                "Normal": "green",
-                "Acidic": "red",
-                "Alkaline": "purple"
-            },
-            zoom=12,
-            size_max=15,
-            height=400
+        # Create a new column for hover text that includes soil type
+        map_data['hover_text'] = map_data.apply(
+            lambda row: f"Soil Type: {row['water_type']}<br>pH: {row['latest_ph']:.2f}<br>Status: {row['status']}",
+            axis=1
         )
         
+        # Create the map centered on Thailand using Scattermapbox directly
+        fig = go.Figure()
+        
+        # Add points for each sensor
+        for status in ["Normal", "Acidic", "Alkaline"]:
+            df_status = map_data[map_data['status'] == status]
+            if not df_status.empty:
+                fig.add_trace(go.Scattermapbox(
+                    lat=df_status['latitude'],
+                    lon=df_status['longitude'],
+                    mode='markers',
+                    marker=dict(
+                        size=15,
+                        color={"Normal": "green", "Acidic": "red", "Alkaline": "purple"}[status]
+                    ),
+                    text=df_status['location_name'],
+                    hovertext=df_status['hover_text'],
+                    hoverinfo='text',
+                    name=status
+                ))
+        
+        # Set map layout
         fig.update_layout(
-            mapbox_style="open-street-map",
-            margin={"r": 0, "t": 0, "l": 0, "b": 0}
+            mapbox=dict(
+                style="open-street-map",
+                center={"lat": 15.8700, "lon": 100.9925},  # Center on Thailand
+                zoom=5
+            ),
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            height=400,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -122,21 +136,23 @@ def show_overview_dashboard(data):
     with col2:
         st.subheader("Sensor Information")
         
-        # Display sensor info in a table
+        # Display sensor info in a table with renamed columns
+        sensor_table = sensor_info[['sensor_id', 'location_name', 'water_type', 'last_calibration']].copy()
+        sensor_table.columns = ['Sensor ID', 'Location', 'Soil Type', 'Last Calibration']
         st.dataframe(
-            sensor_info[['sensor_id', 'location_name', 'water_type', 'last_calibration']],
+            sensor_table,
             use_container_width=True
         )
         
-        # Display a pie chart of water types
-        water_type_counts = sensor_info['water_type'].value_counts().reset_index()
-        water_type_counts.columns = ['Water Type', 'Count']
+        # Display a pie chart of soil types
+        soil_type_counts = sensor_info['water_type'].value_counts().reset_index()
+        soil_type_counts.columns = ['Soil Type', 'Count']
         
         fig = px.pie(
-            water_type_counts,
+            soil_type_counts,
             values='Count',
-            names='Water Type',
-            title='Sensors by Water Type',
+            names='Soil Type',
+            title='Sensors by Soil Type',
             hole=0.4
         )
         
@@ -161,11 +177,26 @@ def show_overview_dashboard(data):
         else:
             sensor_data['Location'] = f"Sensor {i}"
         
-        # Get the latest readings
-        for param in ['ph', 'temp', 'conductivity', 'dissolved_oxygen', 'turbidity']:
+        # Get the latest readings in the specified order
+        # pH first, followed by humidity and temperature, then the rest
+        for param in ['ph', 'humidity', 'temp', 'conductivity', 'nitrogen', 'phosphorus', 'potassium', 'dissolved_oxygen', 'turbidity']:
             col = f'sensor_{i}_{param}'
             if col in latest_data:
-                sensor_data[param.capitalize()] = latest_data[col]
+                # Format the parameter name for display
+                if param == 'ph':
+                    param_name = 'pH'
+                elif param == 'temp':
+                    param_name = 'Temperature'
+                elif param == 'nitrogen':
+                    param_name = 'N'
+                elif param == 'phosphorus':
+                    param_name = 'P'
+                elif param == 'potassium':
+                    param_name = 'K'
+                else:
+                    param_name = param.capitalize()
+                
+                sensor_data[param_name] = latest_data[col]
         
         latest_readings.append(sensor_data)
     
@@ -180,10 +211,14 @@ def show_overview_dashboard(data):
         else:
             return 'background-color: rgba(0, 128, 0, 0.2)'
     
-    # Apply styling
-    styled_df = latest_df.style.applymap(
-        color_ph, subset=['Ph']
-    )
+    # Apply styling (using .map instead of .applymap which is deprecated)
+    # Check if 'pH' column exists in the DataFrame
+    if 'pH' in latest_df.columns:
+        styled_df = latest_df.style.map(
+            color_ph, subset=['pH']
+        )
+    else:
+        styled_df = latest_df.style
     
     st.dataframe(styled_df, use_container_width=True)
     
@@ -192,8 +227,8 @@ def show_overview_dashboard(data):
     # Create a section for the daily trends
     st.subheader("Daily Trends")
     
-    # Create tabs for different parameters
-    tabs = st.tabs(["pH", "Temperature", "Conductivity", "Dissolved Oxygen", "Turbidity"])
+    # Create tabs for different parameters (in the specified order)
+    tabs = st.tabs(["pH", "Humidity", "Temperature", "Conductivity", "NPK", "Dissolved Oxygen", "Turbidity"])
     
     # Get the last 7 days of data
     last_7_days = daily_summary[daily_summary['date'] >= (daily_summary['date'].max() - timedelta(days=7))]
@@ -268,8 +303,41 @@ def show_overview_dashboard(data):
             "Values outside this range may require attention."
         )
     
-    # Temperature tab
+    # Humidity tab (inserted after pH and before Temperature)
     with tabs[1]:
+        fig = go.Figure()
+        
+        for i in range(1, num_sensors + 1):
+            avg_col = f'sensor_{i}_humidity_avg'
+            
+            if avg_col in last_7_days.columns:
+                # Get the location name
+                sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
+                if not sensor_info_row.empty:
+                    name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                else:
+                    name = f"Sensor {i}"
+                
+                # Add a line for the average
+                fig.add_trace(go.Scatter(
+                    x=last_7_days['date'],
+                    y=last_7_days[avg_col],
+                    mode='lines+markers',
+                    name=name
+                ))
+        
+        fig.update_layout(
+            title="Daily Average Humidity (Last 7 Days)",
+            xaxis_title="Date",
+            yaxis_title="Humidity (%)",
+            legend_title="Sensor",
+            hovermode="x unified"
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Temperature tab
+    with tabs[2]:
         fig = go.Figure()
         
         for i in range(1, num_sensors + 1):
@@ -302,7 +370,7 @@ def show_overview_dashboard(data):
         st.plotly_chart(fig, use_container_width=True)
     
     # Conductivity tab
-    with tabs[2]:
+    with tabs[3]:
         fig = go.Figure()
         
         for i in range(1, num_sensors + 1):
@@ -334,8 +402,112 @@ def show_overview_dashboard(data):
         
         st.plotly_chart(fig, use_container_width=True)
     
+    # NPK tab (Nitrogen, Phosphorus, Potassium)
+    with tabs[4]:
+        # Create subtabs for N, P, K
+        npk_tabs = st.tabs(["Nitrogen (N)", "Phosphorus (P)", "Potassium (K)"])
+        
+        # Nitrogen subtab
+        with npk_tabs[0]:
+            fig = go.Figure()
+            
+            for i in range(1, num_sensors + 1):
+                avg_col = f'sensor_{i}_nitrogen_avg'
+                
+                if avg_col in last_7_days.columns:
+                    # Get the location name
+                    sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
+                    if not sensor_info_row.empty:
+                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    else:
+                        name = f"Sensor {i}"
+                    
+                    # Add a line for the average
+                    fig.add_trace(go.Scatter(
+                        x=last_7_days['date'],
+                        y=last_7_days[avg_col],
+                        mode='lines+markers',
+                        name=name
+                    ))
+            
+            fig.update_layout(
+                title="Daily Average Nitrogen (Last 7 Days)",
+                xaxis_title="Date",
+                yaxis_title="Nitrogen (mg/kg)",
+                legend_title="Sensor",
+                hovermode="x unified"
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Phosphorus subtab
+        with npk_tabs[1]:
+            fig = go.Figure()
+            
+            for i in range(1, num_sensors + 1):
+                avg_col = f'sensor_{i}_phosphorus_avg'
+                
+                if avg_col in last_7_days.columns:
+                    # Get the location name
+                    sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
+                    if not sensor_info_row.empty:
+                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    else:
+                        name = f"Sensor {i}"
+                    
+                    # Add a line for the average
+                    fig.add_trace(go.Scatter(
+                        x=last_7_days['date'],
+                        y=last_7_days[avg_col],
+                        mode='lines+markers',
+                        name=name
+                    ))
+            
+            fig.update_layout(
+                title="Daily Average Phosphorus (Last 7 Days)",
+                xaxis_title="Date",
+                yaxis_title="Phosphorus (mg/kg)",
+                legend_title="Sensor",
+                hovermode="x unified"
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Potassium subtab
+        with npk_tabs[2]:
+            fig = go.Figure()
+            
+            for i in range(1, num_sensors + 1):
+                avg_col = f'sensor_{i}_potassium_avg'
+                
+                if avg_col in last_7_days.columns:
+                    # Get the location name
+                    sensor_info_row = sensor_info[sensor_info['sensor_id'] == i]
+                    if not sensor_info_row.empty:
+                        name = f"Sensor {i} ({sensor_info_row['location_name'].values[0]})"
+                    else:
+                        name = f"Sensor {i}"
+                    
+                    # Add a line for the average
+                    fig.add_trace(go.Scatter(
+                        x=last_7_days['date'],
+                        y=last_7_days[avg_col],
+                        mode='lines+markers',
+                        name=name
+                    ))
+            
+            fig.update_layout(
+                title="Daily Average Potassium (Last 7 Days)",
+                xaxis_title="Date",
+                yaxis_title="Potassium (mg/kg)",
+                legend_title="Sensor",
+                hovermode="x unified"
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
     # Dissolved Oxygen tab
-    with tabs[3]:
+    with tabs[5]:
         fig = go.Figure()
         
         for i in range(1, num_sensors + 1):
@@ -368,7 +540,7 @@ def show_overview_dashboard(data):
         st.plotly_chart(fig, use_container_width=True)
     
     # Turbidity tab
-    with tabs[4]:
+    with tabs[6]:
         fig = go.Figure()
         
         for i in range(1, num_sensors + 1):

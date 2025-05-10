@@ -288,6 +288,250 @@ def generate_turbidity_data(ph_df, seed=42):
     
     return turb_df
 
+def generate_humidity_data(ph_df, temp_df, seed=42):
+    """
+    Generate soil humidity data with correlation to pH and temperature.
+    
+    Parameters:
+    - ph_df: DataFrame containing pH data
+    - temp_df: DataFrame containing temperature data
+    - seed: Random seed for reproducibility
+    
+    Returns:
+    - DataFrame with humidity data for each sensor
+    """
+    np.random.seed(seed)
+    
+    humidity_df = ph_df.copy()
+    
+    # Get the number of sensors from the pH dataframe
+    num_sensors = sum(1 for col in ph_df.columns if col.endswith('_ph'))
+    
+    for i in range(1, num_sensors + 1):
+        ph_col = f'sensor_{i}_ph'
+        temp_col = f'sensor_{i}_temp'
+        
+        # Base humidity (different for each sensor, in %)
+        base_humidity = 50.0 + np.random.uniform(-10, 10)
+        
+        # Generate humidity with correlation to pH and temperature
+        humidity_values = []
+        
+        for idx, row in ph_df.iterrows():
+            timestamp = row['timestamp']
+            ph = row[ph_col]
+            temp = temp_df.loc[idx, temp_col]
+            
+            # Daily pattern (humidity might be higher at night and early morning)
+            hour_effect = -5.0 * np.sin(2 * np.pi * (timestamp.hour - 6) / 24)
+            
+            # Temperature effect (humidity decreases as temperature increases)
+            temp_effect = -0.5 * (temp - 25.0)
+            
+            # pH effect (slight effect)
+            ph_effect = -2.0 * (ph - 7.0)
+            
+            # Random noise
+            noise = np.random.normal(0, 3.0)
+            
+            # Calculate humidity
+            humidity = base_humidity + hour_effect + temp_effect + ph_effect + noise
+            
+            # Ensure humidity is within realistic bounds (0-100%)
+            humidity = max(0, min(100, humidity))
+            
+            humidity_values.append(round(humidity, 1))
+        
+        humidity_df[f'sensor_{i}_humidity'] = humidity_values
+    
+    return humidity_df
+
+def generate_nitrogen_data(ph_df, humidity_df, seed=42):
+    """
+    Generate soil nitrogen (N) data with correlation to pH and humidity.
+    
+    Parameters:
+    - ph_df: DataFrame containing pH data
+    - humidity_df: DataFrame containing humidity data
+    - seed: Random seed for reproducibility
+    
+    Returns:
+    - DataFrame with nitrogen data for each sensor
+    """
+    np.random.seed(seed)
+    
+    nitrogen_df = ph_df.copy()
+    
+    # Get the number of sensors from the pH dataframe
+    num_sensors = sum(1 for col in ph_df.columns if col.endswith('_ph'))
+    
+    for i in range(1, num_sensors + 1):
+        ph_col = f'sensor_{i}_ph'
+        humidity_col = f'sensor_{i}_humidity'
+        
+        # Base nitrogen level (different for each sensor, in mg/kg)
+        base_nitrogen = 40.0 + np.random.uniform(-10, 10)
+        
+        # Generate nitrogen with correlation to pH and humidity
+        nitrogen_values = []
+        
+        for idx, row in ph_df.iterrows():
+            timestamp = row['timestamp']
+            ph = row[ph_col]
+            humidity = humidity_df.loc[idx, humidity_col]
+            
+            # pH effect (nitrogen availability is affected by pH)
+            # Optimal pH for nitrogen availability is around 6.0-7.0
+            ph_effect = -5.0 * abs(ph - 6.5)
+            
+            # Humidity effect (higher humidity can increase nitrogen availability)
+            humidity_effect = 0.2 * (humidity - 50)
+            
+            # Seasonal effect
+            day_of_year = timestamp.timetuple().tm_yday
+            seasonal_effect = 10.0 * np.sin(2 * np.pi * (day_of_year - 120) / 365)
+            
+            # Random noise
+            noise = np.random.normal(0, 3.0)
+            
+            # Calculate nitrogen
+            nitrogen = base_nitrogen + ph_effect + humidity_effect + seasonal_effect + noise
+            
+            # Ensure nitrogen is positive
+            nitrogen = max(0, nitrogen)
+            
+            nitrogen_values.append(round(nitrogen, 1))
+        
+        nitrogen_df[f'sensor_{i}_nitrogen'] = nitrogen_values
+    
+    return nitrogen_df
+
+def generate_phosphorus_data(ph_df, humidity_df, seed=42):
+    """
+    Generate soil phosphorus (P) data with correlation to pH and humidity.
+    
+    Parameters:
+    - ph_df: DataFrame containing pH data
+    - humidity_df: DataFrame containing humidity data
+    - seed: Random seed for reproducibility
+    
+    Returns:
+    - DataFrame with phosphorus data for each sensor
+    """
+    np.random.seed(seed)
+    
+    phosphorus_df = ph_df.copy()
+    
+    # Get the number of sensors from the pH dataframe
+    num_sensors = sum(1 for col in ph_df.columns if col.endswith('_ph'))
+    
+    for i in range(1, num_sensors + 1):
+        ph_col = f'sensor_{i}_ph'
+        humidity_col = f'sensor_{i}_humidity'
+        
+        # Base phosphorus level (different for each sensor, in mg/kg)
+        base_phosphorus = 15.0 + np.random.uniform(-5, 5)
+        
+        # Generate phosphorus with correlation to pH and humidity
+        phosphorus_values = []
+        
+        for idx, row in ph_df.iterrows():
+            timestamp = row['timestamp']
+            ph = row[ph_col]
+            humidity = humidity_df.loc[idx, humidity_col]
+            
+            # pH effect (phosphorus availability is highly affected by pH)
+            # Optimal pH for phosphorus availability is around 6.0-7.0
+            # Phosphorus becomes less available at high pH (> 7.5) and low pH (< 5.5)
+            if ph < 5.5:
+                ph_effect = -5.0 * (5.5 - ph)
+            elif ph > 7.5:
+                ph_effect = -3.0 * (ph - 7.5)
+            else:
+                ph_effect = 2.0 * (1 - abs(ph - 6.5) / 1.0)
+            
+            # Humidity effect (moderate effect)
+            humidity_effect = 0.1 * (humidity - 50)
+            
+            # Seasonal effect
+            day_of_year = timestamp.timetuple().tm_yday
+            seasonal_effect = 3.0 * np.sin(2 * np.pi * (day_of_year - 90) / 365)
+            
+            # Random noise
+            noise = np.random.normal(0, 1.5)
+            
+            # Calculate phosphorus
+            phosphorus = base_phosphorus + ph_effect + humidity_effect + seasonal_effect + noise
+            
+            # Ensure phosphorus is positive
+            phosphorus = max(0, phosphorus)
+            
+            phosphorus_values.append(round(phosphorus, 1))
+        
+        phosphorus_df[f'sensor_{i}_phosphorus'] = phosphorus_values
+    
+    return phosphorus_df
+
+def generate_potassium_data(ph_df, humidity_df, seed=42):
+    """
+    Generate soil potassium (K) data with correlation to pH and humidity.
+    
+    Parameters:
+    - ph_df: DataFrame containing pH data
+    - humidity_df: DataFrame containing humidity data
+    - seed: Random seed for reproducibility
+    
+    Returns:
+    - DataFrame with potassium data for each sensor
+    """
+    np.random.seed(seed)
+    
+    potassium_df = ph_df.copy()
+    
+    # Get the number of sensors from the pH dataframe
+    num_sensors = sum(1 for col in ph_df.columns if col.endswith('_ph'))
+    
+    for i in range(1, num_sensors + 1):
+        ph_col = f'sensor_{i}_ph'
+        humidity_col = f'sensor_{i}_humidity'
+        
+        # Base potassium level (different for each sensor, in mg/kg)
+        base_potassium = 150.0 + np.random.uniform(-30, 30)
+        
+        # Generate potassium with correlation to pH and humidity
+        potassium_values = []
+        
+        for idx, row in ph_df.iterrows():
+            timestamp = row['timestamp']
+            ph = row[ph_col]
+            humidity = humidity_df.loc[idx, humidity_col]
+            
+            # pH effect (potassium availability is moderately affected by pH)
+            # Potassium is generally available across a wide pH range
+            ph_effect = -10.0 * abs(ph - 6.5) / 6.5
+            
+            # Humidity effect (higher humidity can increase potassium availability)
+            humidity_effect = 0.3 * (humidity - 50)
+            
+            # Seasonal effect
+            day_of_year = timestamp.timetuple().tm_yday
+            seasonal_effect = 15.0 * np.sin(2 * np.pi * (day_of_year - 150) / 365)
+            
+            # Random noise
+            noise = np.random.normal(0, 10.0)
+            
+            # Calculate potassium
+            potassium = base_potassium + ph_effect + humidity_effect + seasonal_effect + noise
+            
+            # Ensure potassium is positive
+            potassium = max(0, potassium)
+            
+            potassium_values.append(round(potassium, 1))
+        
+        potassium_df[f'sensor_{i}_potassium'] = potassium_values
+    
+    return potassium_df
+
 def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
     """
     Generate a complete dataset with all sensor parameters.
@@ -307,8 +551,20 @@ def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=
     # Generate temperature data
     temp_df = generate_temperature_data(ph_df, correlation=0.3, seed=seed)
     
+    # Generate humidity data
+    humidity_df = generate_humidity_data(ph_df, temp_df, seed=seed)
+    
     # Generate conductivity data
     cond_df = generate_conductivity_data(ph_df, temp_df, seed=seed)
+    
+    # Generate nitrogen data
+    nitrogen_df = generate_nitrogen_data(ph_df, humidity_df, seed=seed)
+    
+    # Generate phosphorus data
+    phosphorus_df = generate_phosphorus_data(ph_df, humidity_df, seed=seed)
+    
+    # Generate potassium data
+    potassium_df = generate_potassium_data(ph_df, humidity_df, seed=seed)
     
     # Generate dissolved oxygen data
     do_df = generate_dissolved_oxygen_data(ph_df, temp_df, seed=seed)
@@ -320,8 +576,14 @@ def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=
     all_data = ph_df.copy()
     
     for i in range(1, num_sensors + 1):
-        all_data[f'sensor_{i}_temp'] = temp_df[f'sensor_{i}_temp']
+        # Add parameters in order of importance as specified by the user
+        all_data[f'sensor_{i}_ph'] = ph_df[f'sensor_{i}_ph']  # Most important
+        all_data[f'sensor_{i}_humidity'] = humidity_df[f'sensor_{i}_humidity']  # Second
+        all_data[f'sensor_{i}_temp'] = temp_df[f'sensor_{i}_temp']  # Third
         all_data[f'sensor_{i}_conductivity'] = cond_df[f'sensor_{i}_conductivity']
+        all_data[f'sensor_{i}_nitrogen'] = nitrogen_df[f'sensor_{i}_nitrogen']
+        all_data[f'sensor_{i}_phosphorus'] = phosphorus_df[f'sensor_{i}_phosphorus']
+        all_data[f'sensor_{i}_potassium'] = potassium_df[f'sensor_{i}_potassium']
         all_data[f'sensor_{i}_dissolved_oxygen'] = do_df[f'sensor_{i}_dissolved_oxygen']
         all_data[f'sensor_{i}_turbidity'] = turb_df[f'sensor_{i}_turbidity']
     
@@ -329,7 +591,7 @@ def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=
 
 def add_location_info(df, num_sensors=3):
     """
-    Add location information for each sensor.
+    Add location information for each sensor in Thailand.
     
     Parameters:
     - df: DataFrame with sensor data
@@ -338,13 +600,15 @@ def add_location_info(df, num_sensors=3):
     Returns:
     - DataFrame with location information
     """
-    # Define possible locations
+    # Define possible locations for soil sensors in Thailand
     locations = [
-        {"name": "Intake Basin", "type": "Raw Water", "coordinates": "40.7128° N, 74.0060° W"},
-        {"name": "Sedimentation Tank", "type": "Process Water", "coordinates": "40.7130° N, 74.0065° W"},
-        {"name": "Filtration Unit", "type": "Process Water", "coordinates": "40.7135° N, 74.0070° W"},
-        {"name": "Chlorination Chamber", "type": "Process Water", "coordinates": "40.7140° N, 74.0075° W"},
-        {"name": "Final Effluent", "type": "Treated Water", "coordinates": "40.7145° N, 74.0080° W"}
+        {"name": "Chiang Mai Rice Field", "type": "Clay Soil", "coordinates": "18.7883° N, 98.9853° E"},
+        {"name": "Khon Kaen Cassava Farm", "type": "Sandy Loam", "coordinates": "16.4419° N, 102.8360° E"},
+        {"name": "Rayong Fruit Orchard", "type": "Loamy Soil", "coordinates": "12.6748° N, 101.2815° E"},
+        {"name": "Chiang Rai Tea Plantation", "type": "Silt Loam", "coordinates": "19.9071° N, 99.8306° E"},
+        {"name": "Nakhon Ratchasima Corn Field", "type": "Clay Loam", "coordinates": "14.9798° N, 102.0978° E"},
+        {"name": "Sukhothai Rice Paddy", "type": "Silty Clay", "coordinates": "17.0076° N, 99.8268° E"},
+        {"name": "Kanchanaburi Sugarcane Field", "type": "Sandy Clay", "coordinates": "14.0227° N, 99.5328° E"}
     ]
     
     # Create a new dataframe with sensor metadata
@@ -426,7 +690,7 @@ def save_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
         
         for i in range(1, num_sensors + 1):
             # Calculate statistics for each parameter
-            for param in ['ph', 'temp', 'conductivity', 'dissolved_oxygen', 'turbidity']:
+            for param in ['ph', 'humidity', 'temp', 'conductivity', 'nitrogen', 'phosphorus', 'potassium', 'dissolved_oxygen', 'turbidity']:
                 col = f'sensor_{i}_{param}'
                 if col in group.columns:
                     date_stats[f'sensor_{i}_{param}_min'] = group[col].min()

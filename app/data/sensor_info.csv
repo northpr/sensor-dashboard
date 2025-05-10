@@ -1,0 +1,6 @@
+sensor_id,location_name,water_type,coordinates,installation_date,maintenance_interval_days,last_calibration
+1,Chiang Mai Rice Field,Clay Soil,"18.7883° N, 98.9853° E",2024-07-21,60,2025-04-29
+2,Khon Kaen Cassava Farm,Sandy Loam,"16.4419° N, 102.8360° E",2024-08-21,60,2025-04-14
+3,Rayong Fruit Orchard,Loamy Soil,"12.6748° N, 101.2815° E",2025-01-31,30,2025-04-19
+4,Chiang Rai Tea Plantation,Silt Loam,"19.9071° N, 99.8306° E",2024-12-21,60,2025-04-29
+5,Nakhon Ratchasima Corn Field,Clay Loam,"14.9798° N, 102.0978° E",2025-04-06,30,2025-04-29

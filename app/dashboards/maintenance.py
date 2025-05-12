@@ -7,29 +7,29 @@ from datetime import datetime, timedelta
 
 def show_maintenance_dashboard(data):
     """
-    Display maintenance dashboard for all sensors.
+    แสดงแดชบอร์ดการบำรุงรักษาสำหรับเซ็นเซอร์ทั้งหมด
     
-    Parameters:
-    - data: Dictionary containing all sensor data
+    พารามิเตอร์:
+    - data: พจนานุกรมที่มีข้อมูลเซ็นเซอร์ทั้งหมด
     """
-    st.header("Maintenance Dashboard")
-    st.markdown("This dashboard provides information about sensor maintenance and calibration schedules.")
+    st.header("แดชบอร์ดการบำรุงรักษา")
+    st.markdown("แดชบอร์ดนี้ให้ข้อมูลเกี่ยวกับการบำรุงรักษาเซ็นเซอร์และกำหนดการปรับเทียบ")
     
     # Get the data
     combined_data = data['combined_data']
     sensor_info = data['sensor_info']
     
-    # Create tabs for different maintenance views
+    # สร้างแท็บสำหรับมุมมองการบำรุงรักษาต่างๆ
     tabs = st.tabs([
-        "Maintenance Overview", 
-        "Calibration Schedule", 
-        "Sensor Health",
-        "Maintenance History"
+        "ภาพรวมการบำรุงรักษา", 
+        "กำหนดการปรับเทียบ", 
+        "สุขภาพเซ็นเซอร์",
+        "ประวัติการบำรุงรักษา"
     ])
     
-    # Maintenance Overview tab
+    # แท็บภาพรวมการบำรุงรักษา
     with tabs[0]:
-        st.subheader("Maintenance Overview")
+        st.subheader("ภาพรวมการบำรุงรักษา")
         
         # Create a dataframe with maintenance information
         maintenance_df = sensor_info.copy()
@@ -156,9 +156,9 @@ def show_maintenance_dashboard(data):
         
         st.plotly_chart(fig, use_container_width=True)
     
-    # Calibration Schedule tab
+    # แท็บกำหนดการปรับเทียบ
     with tabs[1]:
-        st.subheader("Calibration Schedule")
+        st.subheader("กำหนดการปรับเทียบ")
         
         # Create a dataframe with calibration schedule
         schedule_df = sensor_info.copy()
@@ -286,9 +286,9 @@ def show_maintenance_dashboard(data):
             if submitted:
                 st.success(f"Calibration scheduled for Sensor {sensor_id} on {cal_date}. (Note: This is a demo, no data is actually saved)")
     
-    # Sensor Health tab
+    # แท็บสุขภาพเซ็นเซอร์
     with tabs[2]:
-        st.subheader("Sensor Health")
+        st.subheader("สุขภาพเซ็นเซอร์")
         
         # Create a dataframe with sensor health information
         health_df = sensor_info.copy()
@@ -434,9 +434,9 @@ def show_maintenance_dashboard(data):
         
         st.plotly_chart(fig, use_container_width=True)
     
-    # Maintenance History tab
+    # แท็บประวัติการบำรุงรักษา
     with tabs[3]:
-        st.subheader("Maintenance History")
+        st.subheader("ประวัติการบำรุงรักษา")
         
         # Since we don't have actual maintenance history data, we'll create some simulated data
         st.markdown("### Simulated Maintenance History")

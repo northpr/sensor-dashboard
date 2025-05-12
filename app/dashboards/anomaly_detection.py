@@ -86,29 +86,29 @@ def detect_anomalies_rolling(data, column, window=24, threshold=3.0):
 
 def show_anomaly_detection_dashboard(data):
     """
-    Display anomaly detection dashboard for all sensors.
+    แสดงแดชบอร์ดการตรวจจับความผิดปกติสำหรับเซ็นเซอร์ทั้งหมด
     
-    Parameters:
-    - data: Dictionary containing all sensor data
+    พารามิเตอร์:
+    - data: พจนานุกรมที่มีข้อมูลเซ็นเซอร์ทั้งหมด
     """
-    st.header("Anomaly Detection Dashboard")
-    st.markdown("This dashboard helps identify anomalies in water quality parameters.")
+    st.header("แดชบอร์ดการตรวจจับความผิดปกติ")
+    st.markdown("แดชบอร์ดนี้ช่วยระบุความผิดปกติในพารามิเตอร์คุณภาพดิน")
     
     # Get the data
     combined_data = data['combined_data']
     sensor_info = data['sensor_info']
     
-    # Create tabs for different anomaly detection methods
+    # สร้างแท็บสำหรับวิธีการตรวจจับความผิดปกติต่างๆ
     tabs = st.tabs([
-        "Time Series Anomalies", 
-        "Statistical Anomalies", 
-        "Correlation Anomalies",
-        "Anomaly Summary"
+        "ความผิดปกติในอนุกรมเวลา", 
+        "ความผิดปกติทางสถิติ", 
+        "ความผิดปกติในความสัมพันธ์",
+        "สรุปความผิดปกติ"
     ])
     
-    # Time Series Anomalies tab
+    # แท็บความผิดปกติในอนุกรมเวลา
     with tabs[0]:
-        st.subheader("Time Series Anomalies")
+        st.subheader("ความผิดปกติในอนุกรมเวลา")
         
         # Parameter and sensor selection
         col1, col2, col3 = st.columns(3)
@@ -444,9 +444,9 @@ def show_anomaly_detection_dashboard(data):
                 else:
                     st.info("No anomalies detected with the current settings.")
     
-    # Statistical Anomalies tab
+    # แท็บความผิดปกติทางสถิติ
     with tabs[1]:
-        st.subheader("Statistical Anomalies")
+        st.subheader("ความผิดปกติทางสถิติ")
         
         # Parameter and sensor selection
         col1, col2 = st.columns(2)

@@ -8,30 +8,30 @@ from scipy import stats
 
 def show_trend_analysis_dashboard(data):
     """
-    Display trend analysis dashboard for all sensors.
+    แสดงแดชบอร์ดการวิเคราะห์แนวโน้มสำหรับเซ็นเซอร์ทั้งหมด
     
-    Parameters:
-    - data: Dictionary containing all sensor data
+    พารามิเตอร์:
+    - data: พจนานุกรมที่มีข้อมูลเซ็นเซอร์ทั้งหมด
     """
-    st.header("Trend Analysis Dashboard")
-    st.markdown("This dashboard provides tools for analyzing trends in water quality parameters over time.")
+    st.header("แดชบอร์ดการวิเคราะห์แนวโน้ม")
+    st.markdown("แดชบอร์ดนี้ให้เครื่องมือสำหรับวิเคราะห์แนวโน้มของพารามิเตอร์คุณภาพดินตลอดเวลา")
     
     # Get the data
     combined_data = data['combined_data']
     sensor_info = data['sensor_info']
     daily_summary = data['daily_summary']
     
-    # Create tabs for different trend analyses
+    # สร้างแท็บสำหรับการวิเคราะห์แนวโน้มต่างๆ
     tabs = st.tabs([
-        "Time Series Analysis", 
-        "Seasonal Patterns", 
-        "Correlation Analysis",
-        "Trend Detection"
+        "การวิเคราะห์อนุกรมเวลา", 
+        "รูปแบบตามฤดูกาล", 
+        "การวิเคราะห์ความสัมพันธ์",
+        "การตรวจจับแนวโน้ม"
     ])
     
-    # Time Series Analysis tab
+    # แท็บการวิเคราะห์อนุกรมเวลา
     with tabs[0]:
-        st.subheader("Time Series Analysis")
+        st.subheader("การวิเคราะห์อนุกรมเวลา")
         
         # Create date range selector
         col1, col2 = st.columns(2)
@@ -256,9 +256,9 @@ def show_trend_analysis_dashboard(data):
                 
                 st.plotly_chart(fig, use_container_width=True)
     
-    # Seasonal Patterns tab
+    # แท็บรูปแบบตามฤดูกาล
     with tabs[1]:
-        st.subheader("Seasonal Patterns")
+        st.subheader("รูปแบบตามฤดูกาล")
         
         # Parameter and sensor selection
         col1, col2 = st.columns(2)
@@ -486,9 +486,9 @@ def show_trend_analysis_dashboard(data):
                     f"and the shaded area represents one standard deviation from the mean."
                 )
     
-    # Correlation Analysis tab
+    # แท็บการวิเคราะห์ความสัมพันธ์
     with tabs[2]:
-        st.subheader("Correlation Analysis")
+        st.subheader("การวิเคราะห์ความสัมพันธ์")
         
         # Sensor selection
         # Get the number of sensors
@@ -678,9 +678,9 @@ def show_trend_analysis_dashboard(data):
             "while a low correlation may indicate different water conditions or sensor issues."
         )
     
-    # Trend Detection tab
+    # แท็บการตรวจจับแนวโน้ม
     with tabs[3]:
-        st.subheader("Trend Detection")
+        st.subheader("การตรวจจับแนวโน้ม")
         
         # Parameter and sensor selection
         col1, col2 = st.columns(2)

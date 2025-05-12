@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 
 def show_sensor_detail_dashboard(data, sensor_id):
     """
-    Display detailed information for a specific sensor.
+    แสดงข้อมูลโดยละเอียดสำหรับเซ็นเซอร์เฉพาะ
     
-    Parameters:
-    - data: Dictionary containing all sensor data
-    - sensor_id: ID of the sensor to display
+    พารามิเตอร์:
+    - data: พจนานุกรมที่มีข้อมูลเซ็นเซอร์ทั้งหมด
+    - sensor_id: ID ของเซ็นเซอร์ที่ต้องการแสดง
     """
     # Get the data
     combined_data = data['combined_data']
@@ -23,7 +23,7 @@ def show_sensor_detail_dashboard(data, sensor_id):
     if sensor_key in individual_sensors:
         sensor_data = individual_sensors[sensor_key]
     else:
-        st.error(f"Data for Sensor {sensor_id} not found.")
+        st.error(f"ไม่พบข้อมูลสำหรับเซ็นเซอร์ {sensor_id}")
         return
     
     # Get the sensor info
@@ -43,35 +43,35 @@ def show_sensor_detail_dashboard(data, sensor_id):
         maintenance_interval = "Unknown"
         last_calibration = "Unknown"
     
-    # Display the sensor header
-    st.header(f"Sensor {sensor_id}: {location_name}")
-    st.markdown(f"Detailed information and readings for Sensor {sensor_id} located at {location_name}.")
+    # แสดงส่วนหัวของเซ็นเซอร์
+    st.header(f"เซ็นเซอร์ {sensor_id}: {location_name}")
+    st.markdown(f"ข้อมูลโดยละเอียดและค่าที่อ่านได้สำหรับเซ็นเซอร์ {sensor_id} ที่ตั้งอยู่ที่ {location_name}")
     
     # Create columns for the sensor info
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.subheader("Sensor Information")
-        st.markdown(f"**Location:** {location_name}")
-        st.markdown(f"**Water Type:** {water_type}")
-        st.markdown(f"**Coordinates:** {coordinates}")
-        st.markdown(f"**Installation Date:** {installation_date}")
-        st.markdown(f"**Maintenance Interval:** {maintenance_interval} days")
-        st.markdown(f"**Last Calibration:** {last_calibration}")
+        st.subheader("ข้อมูลเซ็นเซอร์")
+        st.markdown(f"**ตำแหน่ง:** {location_name}")
+        st.markdown(f"**ประเภทดิน:** {water_type}")
+        st.markdown(f"**พิกัด:** {coordinates}")
+        st.markdown(f"**วันที่ติดตั้ง:** {installation_date}")
+        st.markdown(f"**ช่วงเวลาบำรุงรักษา:** {maintenance_interval} วัน")
+        st.markdown(f"**การปรับเทียบล่าสุด:** {last_calibration}")
         
         # Calculate days since last calibration
         if last_calibration != "Unknown":
             last_cal_date = datetime.strptime(last_calibration, "%Y-%m-%d")
             days_since_cal = (datetime.now() - last_cal_date).days
             
-            # Display calibration status
+            # แสดงสถานะการปรับเทียบ
             if days_since_cal > maintenance_interval:
-                st.warning(f"⚠️ Calibration overdue by {days_since_cal - maintenance_interval} days")
+                st.warning(f"⚠️ เกินกำหนดการปรับเทียบแล้ว {days_since_cal - maintenance_interval} วัน")
             else:
-                st.success(f"✅ Calibration up to date ({days_since_cal} days since last calibration)")
+                st.success(f"✅ การปรับเทียบเป็นปัจจุบัน ({days_since_cal} วันนับจากการปรับเทียบครั้งล่าสุด)")
     
     with col2:
-        st.subheader("Current Readings")
+        st.subheader("ค่าปัจจุบัน")
         
         # Get the latest readings
         latest_data = sensor_data.iloc[-1]
@@ -85,40 +85,40 @@ def show_sensor_detail_dashboard(data, sensor_id):
                 if param == 'ph':
                     formatted_value = f"{value:.2f}"
                     if value < 6.5:
-                        st.error(f"**pH:** {formatted_value} (Acidic)")
+                        st.error(f"**pH:** {formatted_value} (เป็นกรด)")
                     elif value > 8.5:
-                        st.error(f"**pH:** {formatted_value} (Alkaline)")
+                        st.error(f"**pH:** {formatted_value} (เป็นด่าง)")
                     else:
-                        st.success(f"**pH:** {formatted_value} (Normal)")
+                        st.success(f"**pH:** {formatted_value} (ปกติ)")
                 
                 elif param == 'temp':
                     formatted_value = f"{value:.1f} °C"
-                    st.markdown(f"**Temperature:** {formatted_value}")
+                    st.markdown(f"**อุณหภูมิ:** {formatted_value}")
                 
                 elif param == 'conductivity':
                     formatted_value = f"{value:.1f} μS/cm"
-                    st.markdown(f"**Conductivity:** {formatted_value}")
+                    st.markdown(f"**การนำไฟฟ้า:** {formatted_value}")
                 
                 elif param == 'dissolved_oxygen':
                     formatted_value = f"{value:.2f} mg/L"
                     if value < 4.0:
-                        st.error(f"**Dissolved Oxygen:** {formatted_value} (Low)")
+                        st.error(f"**ออกซิเจนละลาย:** {formatted_value} (ต่ำ)")
                     else:
-                        st.success(f"**Dissolved Oxygen:** {formatted_value} (Normal)")
+                        st.success(f"**ออกซิเจนละลาย:** {formatted_value} (ปกติ)")
                 
                 elif param == 'turbidity':
                     formatted_value = f"{value:.2f} NTU"
                     if value > 10.0:
-                        st.warning(f"**Turbidity:** {formatted_value} (High)")
+                        st.warning(f"**ความขุ่น:** {formatted_value} (สูง)")
                     else:
-                        st.success(f"**Turbidity:** {formatted_value} (Normal)")
+                        st.success(f"**ความขุ่น:** {formatted_value} (ปกติ)")
         
-        # Display the last update time
+        # แสดงเวลาที่อัปเดตล่าสุด
         last_update = latest_data['timestamp']
-        st.markdown(f"**Last Updated:** {last_update}")
+        st.markdown(f"**อัปเดตล่าสุด:** {last_update}")
     
     with col3:
-        st.subheader("Parameter Status")
+        st.subheader("สถานะพารามิเตอร์")
         
         # Create a gauge chart for pH
         if 'ph' in latest_data:
@@ -157,12 +157,12 @@ def show_sensor_detail_dashboard(data, sensor_id):
     
     st.markdown("---")
     
-    # Create tabs for different visualizations
-    tabs = st.tabs(["Time Series", "Hourly Patterns", "Correlations", "Statistics"])
+    # สร้างแท็บสำหรับการแสดงผลต่างๆ
+    tabs = st.tabs(["ข้อมูลอนุกรมเวลา", "รูปแบบรายชั่วโมง", "ความสัมพันธ์", "สถิติ"])
     
-    # Time Series tab
+    # แท็บข้อมูลอนุกรมเวลา
     with tabs[0]:
-        st.subheader("Time Series Data")
+        st.subheader("ข้อมูลอนุกรมเวลา")
         
         # Create date range selector
         col1, col2 = st.columns(2)
@@ -274,9 +274,9 @@ def show_sensor_detail_dashboard(data, sensor_id):
                 mime="text/csv"
             )
     
-    # Hourly Patterns tab
+    # แท็บรูปแบบรายชั่วโมง
     with tabs[1]:
-        st.subheader("Hourly Patterns")
+        st.subheader("รูปแบบรายชั่วโมง")
         
         # Group data by hour
         sensor_data['hour'] = sensor_data['timestamp'].dt.hour

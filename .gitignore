@@ -43,4 +43,13 @@ env/
 ehthumbs.db
 Thumbs.db
 
-
+# AWS IoT Core certificates
+cert/
+*.pem
+*.key
+*.crt
+*.cert
+*.csr
+*.p12
+*.pfx
+*.jks

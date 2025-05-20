@@ -1,6 +1,6 @@
 jupyterlab
 matplotlib==3.10.1
-numpy==1.24.3
+numpy>=1.26.0
 nbdev < 2
 pandas==2.2.3
 plotly==6.0.1

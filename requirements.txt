@@ -1,12 +1,10 @@
 jupyterlab
-matplotlib
-numpy
+matplotlib==3.10.1
+numpy==1.24.3
 nbdev < 2
-pandas
-plotly
-scikit-learn
-seaborn
-streamlit
-scipy
+pandas==2.2.3
+plotly==6.0.1
+seaborn==0.13.2
+streamlit==1.45.0
 statsmodels
 jinja2 >= 3.1.2

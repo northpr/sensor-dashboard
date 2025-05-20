@@ -4,14 +4,14 @@ import os
 from datetime import datetime, timedelta
 import random
 
-def generate_ph_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
+def generate_ph_data(days=730, frequency_minutes=720, num_sensors=20, seed=42):
     """
     Generate realistic pH sensor data for multiple sensors.
     
     Parameters:
-    - days: Number of days of data to generate
-    - frequency_minutes: Data recording frequency in minutes
-    - num_sensors: Number of pH sensors to simulate
+    - days: Number of days of data to generate (default: 730 days = 2 years)
+    - frequency_minutes: Data recording frequency in minutes (default: 720 minutes = 12 hours, 2 readings per day)
+    - num_sensors: Number of pH sensors to simulate (default: 20)
     - seed: Random seed for reproducibility
     
     Returns:
@@ -37,10 +37,22 @@ def generate_ph_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
         # Base pH value (slightly different for each sensor)
         base_ph = 7.0 + np.random.uniform(-0.5, 0.5)
         
-        # Generate pH values with daily patterns, random fluctuations, and occasional anomalies
+        # Different trend factors for each sensor (some increase, some decrease over time)
+        trend_factor = np.random.uniform(-0.0005, 0.0005)
+        
+        # Threshold for when a fix should be applied (different for each sensor)
+        ph_threshold_high = 8.5 + np.random.uniform(-0.3, 0.3)
+        ph_threshold_low = 5.5 + np.random.uniform(-0.3, 0.3)
+        
+        # Generate pH values with patterns, trends, and fixes
         ph_values = []
         
-        for timestamp in timestamps:
+        # Track when a threshold was exceeded to apply fixes
+        days_over_threshold = 0
+        fix_applied = False
+        fix_decay_factor = 0
+        
+        for idx, timestamp in enumerate(timestamps):
             # Daily pattern (pH might vary slightly throughout the day)
             hour_effect = 0.2 * np.sin(2 * np.pi * timestamp.hour / 24)
             
@@ -55,12 +67,46 @@ def generate_ph_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
             if np.random.random() < 0.01:
                 anomaly = np.random.uniform(-1.0, 1.0)
             
-            # Gradual drift over time (pH sensors often drift)
+            # Long-term trend (different for each sensor)
             days_passed = (timestamp - start_date).days
-            drift = 0.01 * days_passed / 30  # Small drift over a month
+            trend = trend_factor * days_passed
             
-            # Calculate pH value
-            ph = base_ph + hour_effect + day_of_week_effect + noise + anomaly + drift
+            # Seasonal effect (annual cycle)
+            day_of_year = timestamp.timetuple().tm_yday
+            seasonal_effect = 0.3 * np.sin(2 * np.pi * day_of_year / 365)
+            
+            # Calculate base pH value before applying fixes
+            base_value = base_ph + hour_effect + day_of_week_effect + noise + anomaly + trend + seasonal_effect
+            
+            # Apply fix decay if a fix was previously applied
+            if fix_applied:
+                base_value -= fix_decay_factor
+                fix_decay_factor *= 0.9  # Gradually reduce the effect of the fix
+                
+                # If the fix effect is very small, consider it complete
+                if fix_decay_factor < 0.05:
+                    fix_applied = False
+                    fix_decay_factor = 0
+            
+            # Check if pH is outside threshold and track days
+            if base_value > ph_threshold_high or base_value < ph_threshold_low:
+                days_over_threshold += 1
+                
+                # After 7 days over threshold, apply a fix
+                if days_over_threshold >= 14 and not fix_applied:  # 14 readings = 7 days with 2 readings per day
+                    fix_applied = True
+                    
+                    # Calculate fix magnitude based on how far from threshold
+                    if base_value > ph_threshold_high:
+                        fix_decay_factor = (base_value - ph_threshold_high) + 0.5
+                    else:
+                        fix_decay_factor = (ph_threshold_low - base_value) + 0.5
+            else:
+                # Reset counter if pH returns to normal range naturally
+                days_over_threshold = 0
+            
+            # Calculate final pH value
+            ph = base_value
             
             # Ensure pH stays within realistic bounds (0-14)
             ph = max(0, min(14, ph))
@@ -532,7 +578,7 @@ def generate_potassium_data(ph_df, humidity_df, seed=42):
     
     return potassium_df
 
-def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
+def generate_all_sensor_data(days=730, frequency_minutes=720, num_sensors=20, seed=42):
     """
     Generate a complete dataset with all sensor parameters.
     
@@ -589,7 +635,7 @@ def generate_all_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=
     
     return all_data
 
-def add_location_info(df, num_sensors=3):
+def add_location_info(df, num_sensors=20):
     """
     Add location information for each sensor in Thailand.
     
@@ -631,7 +677,7 @@ def add_location_info(df, num_sensors=3):
     
     return pd.DataFrame(sensor_info)
 
-def save_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
+def save_sensor_data(days=730, frequency_minutes=720, num_sensors=20, seed=42):
     """
     Generate and save all sensor data to CSV files.
     
@@ -712,8 +758,8 @@ def save_sensor_data(days=30, frequency_minutes=15, num_sensors=3, seed=42):
     }
 
 if __name__ == "__main__":
-    # Generate and save sensor data for 30 days with readings every 15 minutes
-    file_paths = save_sensor_data(days=30, frequency_minutes=15, num_sensors=5, seed=42)
+    # Generate and save sensor data for 2 years with 2 readings per day for 20 sensors
+    file_paths = save_sensor_data(days=730, frequency_minutes=720, num_sensors=20, seed=42)
     print("Sensor data generated and saved to:")
     for key, path in file_paths.items():
         if isinstance(path, dict):

@@ -1,6 +1,21 @@
 sensor_id,location_name,water_type,coordinates,installation_date,maintenance_interval_days,last_calibration
-1,Chiang Mai Rice Field,Clay Soil,"18.7883° N, 98.9853° E",2024-07-21,60,2025-04-29
-2,Khon Kaen Cassava Farm,Sandy Loam,"16.4419° N, 102.8360° E",2024-08-21,60,2025-04-14
-3,Rayong Fruit Orchard,Loamy Soil,"12.6748° N, 101.2815° E",2025-01-31,30,2025-04-19
-4,Chiang Rai Tea Plantation,Silt Loam,"19.9071° N, 99.8306° E",2024-12-21,60,2025-04-29
-5,Nakhon Ratchasima Corn Field,Clay Loam,"14.9798° N, 102.0978° E",2025-04-06,30,2025-04-29
+1,Chiang Mai Rice Field,Clay Soil,"18.7883° N, 98.9853° E",2024-11-23,30,2025-04-28
+2,Khon Kaen Cassava Farm,Sandy Loam,"16.4419° N, 102.8360° E",2024-08-14,60,2025-05-12
+3,Rayong Fruit Orchard,Loamy Soil,"12.6748° N, 101.2815° E",2024-07-20,90,2025-04-22
+4,Chiang Rai Tea Plantation,Silt Loam,"19.9071° N, 99.8306° E",2025-03-21,60,2025-05-01
+5,Nakhon Ratchasima Corn Field,Clay Loam,"14.9798° N, 102.0978° E",2024-12-25,60,2025-04-24
+6,Sukhothai Rice Paddy,Silty Clay,"17.0076° N, 99.8268° E",2024-08-07,90,2025-05-18
+7,Kanchanaburi Sugarcane Field,Sandy Clay,"14.0227° N, 99.5328° E",2024-11-08,30,2025-05-07
+8,Chiang Mai Rice Field,Clay Soil,"18.7883° N, 98.9853° E",2025-02-17,90,2025-05-01
+9,Khon Kaen Cassava Farm,Sandy Loam,"16.4419° N, 102.8360° E",2024-10-04,60,2025-05-04
+10,Rayong Fruit Orchard,Loamy Soil,"12.6748° N, 101.2815° E",2025-01-27,90,2025-05-11
+11,Chiang Rai Tea Plantation,Silt Loam,"19.9071° N, 99.8306° E",2025-03-25,90,2025-05-02
+12,Nakhon Ratchasima Corn Field,Clay Loam,"14.9798° N, 102.0978° E",2025-04-19,90,2025-05-02
+13,Sukhothai Rice Paddy,Silty Clay,"17.0076° N, 99.8268° E",2025-01-29,60,2025-05-16
+14,Kanchanaburi Sugarcane Field,Sandy Clay,"14.0227° N, 99.5328° E",2024-09-09,60,2025-04-21
+15,Chiang Mai Rice Field,Clay Soil,"18.7883° N, 98.9853° E",2025-03-16,90,2025-05-10
+16,Khon Kaen Cassava Farm,Sandy Loam,"16.4419° N, 102.8360° E",2024-07-21,90,2025-05-03
+17,Rayong Fruit Orchard,Loamy Soil,"12.6748° N, 101.2815° E",2024-06-06,60,2025-05-14
+18,Chiang Rai Tea Plantation,Silt Loam,"19.9071° N, 99.8306° E",2024-12-02,30,2025-05-10
+19,Nakhon Ratchasima Corn Field,Clay Loam,"14.9798° N, 102.0978° E",2025-03-21,30,2025-04-21
+20,Sukhothai Rice Paddy,Silty Clay,"17.0076° N, 99.8268° E",2024-09-29,60,2025-04-26

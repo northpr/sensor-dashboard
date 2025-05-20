@@ -16,7 +16,7 @@ def main():
     if not os.path.exists(data_dir) or not os.listdir(data_dir):
         print("No data found. Generating sample data...")
         from data_generator import save_sensor_data
-        save_sensor_data(days=30, frequency_minutes=15, num_sensors=5, seed=42)
+        save_sensor_data(days=730, frequency_minutes=720, num_sensors=20, seed=42)
         print("Sample data generated successfully!")
     
     # Run the Streamlit app
